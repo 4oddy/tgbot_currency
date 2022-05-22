@@ -9,7 +9,7 @@ class RussianCurrencyManager:
     __URL = "https://www.cbr-xml-daily.ru/daily_json.js"
 
     @classmethod
-    def dollar_euro_exchange_rate(cls, currency):
+    def dollar_euro_exchange_rate(cls, currency, value):
         """ Dollar-euro exchange rate method
             Takes one positional argument: currency (USD or EUR)
             returns current exchange rate from CBR's API or from cached data (cache_dollar_exchange_rate.json and
@@ -18,25 +18,38 @@ class RussianCurrencyManager:
         # if cached data is up-to-date, it will return it
         # else will get response from cbr api
 
-        # for dollar
-        if currency == "USD":
-            if os.path.exists("cache_dollar_exchange_rate.json"):
-                data = cls.__load_exchange_rate_cache("USD")
-                if not data["date"] == cls.__get_date_now():
-                    data = cls.__update_exchange_rate_cache("USD")
-            else:
-                data = cls.__update_exchange_rate_cache("USD")
-            return data
+        try:
+            value = int(value)
 
-        # for euro
-        elif currency == "EUR":
-            if os.path.exists("cache_euro_exchange_rate.json"):
-                data = cls.__load_exchange_rate_cache("EUR")
-                if not data["date"] == cls.__get_date_now():
+            # for dollar
+            if currency == "USD":
+                if os.path.exists("cache_dollar_exchange_rate.json"):
+                    data = cls.__load_exchange_rate_cache("USD")
+                    if not data["date"] == cls.__get_date_now():
+                        data = cls.__update_exchange_rate_cache("USD")
+                else:
+                    data = cls.__update_exchange_rate_cache("USD")
+
+                result = data
+                result["exchange_rate"] = round(result["exchange_rate"] * value, 2)
+
+                return result
+
+            # for euro
+            elif currency == "EUR":
+                if os.path.exists("cache_euro_exchange_rate.json"):
+                    data = cls.__load_exchange_rate_cache("EUR")
+                    if not data["date"] == cls.__get_date_now():
+                        data = cls.__update_exchange_rate_cache("EUR")
+                else:
                     data = cls.__update_exchange_rate_cache("EUR")
-            else:
-                data = cls.__update_exchange_rate_cache("EUR")
-            return data
+
+                result = data
+                result["exchange_rate"] = round(result["exchange_rate"] * value, 2)
+
+                return result
+        except:
+            return None
 
     @classmethod
     def __get_exchange_rate(cls, currency):
@@ -52,6 +65,7 @@ class RussianCurrencyManager:
             with open("cache_dollar_exchange_rate.json", "w") as cache:
                 data = cls.__get_exchange_rate("USD")
                 json.dump(data, cache)
+
         elif currency == "EUR":
             with open('cache_euro_exchange_rate.json', 'w') as cache:
                 data = cls.__get_exchange_rate("EUR")
