@@ -2,6 +2,8 @@
 
 Simple Telegram bot to know exchange rate of each currency 
 
+It works with Russian Central Bank API's integration
+
 Also with this bot you can translate one currency in other
 
 # how to start this bot
