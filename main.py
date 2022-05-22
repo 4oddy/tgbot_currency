@@ -56,7 +56,7 @@ def help_command(message):
 # reply for inputted command
 @bot.message_handler(content_types=["text"])
 def get_message(message):
-    # exchange currency
+    # translate currency
     if message.text[0] == "1" and len(message.text.split()) > 2:
         data = message.text.split()
         if len(data) > 3:
