@@ -8,7 +8,7 @@ Also with this bot you can translate one currency in other
 
 First of all, install requirements.txt by
 
-***pip install -r requirements.txt***
+`pip install -r requirements.txt`
 
 Then, insert your Telegram bot's token into token.env file
 
