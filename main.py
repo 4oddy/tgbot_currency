@@ -35,7 +35,12 @@ def get_currency_ex_rate(message, currency):
         msg = message.text.split()
         value = msg[1]
 
-    result = RussianCurrencyManager.dollar_euro_exchange_rate(currency, value)
+    if currency == "USD":
+        result = RussianCurrencyManager.dollar_exchange_rate(value)
+    elif currency == "EUR":
+        result = RussianCurrencyManager.euro_exchange_rate(value)
+    else:
+        result = None
 
     return value, result
 
