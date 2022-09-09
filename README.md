@@ -33,6 +33,8 @@ First of all, install requirements.txt by
 
 Then, insert your Telegram bot's token into token.env file
 
+`token='your_token'`
+
 And in the end
 
 `python main.py`
