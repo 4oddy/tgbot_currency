@@ -6,7 +6,7 @@ import requests
 from exceptions import CacheExpired, CacheEmpty, CurrencyDoesNotExist
 
 
-def get_current_date():
+def get_current_date() -> str:
     return datetime.now().strftime('%d.%m.%Y')
 
 
@@ -98,7 +98,7 @@ class RussianCurrencyManager:
             raise ValueError('Currency name must be string type')
 
     @classmethod
-    def __get_exchange_rate(cls, currency) -> dict:
+    def __get_exchange_rate(cls, currency: str) -> dict:
         date = get_current_date()
 
         try:
