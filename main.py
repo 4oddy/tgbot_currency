@@ -63,9 +63,12 @@ def get_message(message):
                 first_currency = data[1].upper()
                 second_currency = data[2].upper()
 
-            result = RussianCurrencyManager.exchange_currency(first_currency, second_currency, value)
-            bot.send_message(message.chat.id, f"{value if value else 1} {first_currency}"
-                                              f" = {result} {second_currency}")
+            try:
+                result = RussianCurrencyManager.exchange_currency(first_currency, second_currency, value)
+                bot.send_message(message.chat.id, f"{value if value else 1} {first_currency}"
+                                                f" = {result} {second_currency}")
+            except Exception:
+                bot.send_message(message.chat.id, bot_func_mapper["errors"]["unknown_currency"])
 
         elif message.text[0] == "2":
             data = message.text.split()
