@@ -11,50 +11,26 @@ class RussianCurrencyManager:
     _cache_manager = CacheManager(cache_file_name='currency_cache.json')
 
     @classmethod
-    def dollar_exchange_rate(cls, value: float | int = None) -> float | int:
-        if value is None:
-            value = 1
-
-        if type(value) is int or type(value) is float:
-            rate = cls.__get_exchange_rate("USD")['exchange_rate'] * value
-        else:
-            raise ValueError('Value must be integer or float type')
-
+    def dollar_exchange_rate(cls, value: float | int = 1) -> float | int:
+        rate = cls.__get_exchange_rate("USD")['exchange_rate'] * value
         return rate
 
     @classmethod
-    def euro_exchange_rate(cls, value: float | int = None) -> float | int:
-        if value is None:
-            value = 1
-
-        if type(value) is int or type(value) is float:
-            rate = cls.__get_exchange_rate("EUR")['exchange_rate'] * value
-        else:
-            raise ValueError('Value must be integer or float type')
-
+    def euro_exchange_rate(cls, value: float | int = 1) -> float | int:
+        rate = cls.__get_exchange_rate("EUR")['exchange_rate'] * value
         return rate
 
     @classmethod
-    def exchange_currency(cls, from_this: str, to_this: str, value: int = None) -> float | int:
+    def exchange_currency(cls, from_this: str, to_this: str, value: int = 1) -> float | int:
         """ Exchange currency method
             Takes three positional arguments: from_this, to_this and value (non required)
             Returns one currency (from_this) converted to another (to_this)
             List of all currencies: https://www.cbr-xml-daily.ru/daily_json.js
         """
-        if type(from_this) is str and type(to_this) is str:
-            if value is None:
-                value = 1
-
-            if type(value) is int or type(value) is float:
-                first_currency = cls.__get_exchange_rate(from_this)['exchange_rate'] * value
-                second_currency = cls.__get_exchange_rate(to_this)['exchange_rate']
-                result = round(first_currency / second_currency, 2)
-            else:
-                raise ValueError('Value must be integer or float type')
-
-            return result
-        else:
-            raise ValueError('Currency name must be string type')
+        first_currency = cls.__get_exchange_rate(from_this)['exchange_rate'] * value
+        second_currency = cls.__get_exchange_rate(to_this)['exchange_rate']
+        result = round(first_currency / second_currency, 2)
+        return result
 
     @classmethod
     def __get_exchange_rate(cls, currency: str) -> dict:

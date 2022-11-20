@@ -3,6 +3,9 @@ import telebot
 from dotenv import load_dotenv
 from currency import RussianCurrencyManager
 
+from exceptions import CurrencyDoesNotExist
+
+
 load_dotenv("token.env")
 
 # loads token from current env
@@ -11,19 +14,25 @@ TOKEN = os.environ.get("token")
 # Useful dictionary to map all funcs
 bot_func_mapper = {
     "commands": {
-        "all_with_text": "Вот мои команды:\n1) Перевести валюту (формат: 1 [значение - необязательно] USD EUR)\n"
-                         "2) Курс доллара (формат: 2 [значение - необязательно]\n"
-                         "3) Курс евро (формат: 3 [значение - необязательно]",
+        "all_with_text": "Вот мои команды:\n1) Перевести валюту (формат: /ex [значение] USD EUR)\n"
+                         "2) Курс доллара (формат: /usd [значение]\n"
+                         "3) Курс евро (формат: /eur [значение]",
         "all": ["1", "2", "3"],
     },
     "errors": {
-        "unknown_command": "Я не знаю такой команды! Пропиши /help для списка команд",
         "unknown_currency": "Не удалось найти заданную валюту!",
-        "error": "Произошла ошибка!"
+        "error": "Произошла ошибка!",
     }
 }
 
 bot = telebot.TeleBot(TOKEN)
+
+
+def parse_for_exchange(data: list) -> dict:
+    value = float(data[1])
+    from_this = data[2].upper()
+    to_this = data[3].upper()
+    return {'value': value, 'from_this': from_this, 'to_this': to_this}
 
 
 # /start command reply
@@ -40,75 +49,43 @@ def help_command(message):
     bot.send_message(message.chat.id, bot_func_mapper["commands"]["all_with_text"])
 
 
-# reply for inputted command
-@bot.message_handler(content_types=["text"])
-def get_message(message):
-    # translate currency
-    if message.text[0] in bot_func_mapper["commands"]["all"]:
-        if message.text[0] == "1" and len(message.text.split()) > 2:
-            data = message.text.split()
-
-            value = None
-
-            if len(data) > 3:
-                # if value is defined
-                try:
-                    value = float(data[1])
-                except Exception:
-                    bot.send_message(message.chat.id, bot_func_mapper["errors"]["error"])
-
-                first_currency = data[2].upper()
-                second_currency = data[3].upper()
-            else:
-                first_currency = data[1].upper()
-                second_currency = data[2].upper()
-
-            try:
-                result = RussianCurrencyManager.exchange_currency(first_currency, second_currency, value)
-                bot.send_message(message.chat.id, f"{value if value else 1} {first_currency}"
-                                                f" = {result} {second_currency}")
-            except Exception:
-                bot.send_message(message.chat.id, bot_func_mapper["errors"]["unknown_currency"])
-
-        elif message.text[0] == "2":
-            data = message.text.split()
-
-            value = None
-
-            if len(data) > 1:
-                try:
-                    value = float(data[1])
-                except Exception:
-                    bot.send_message(message.chat.id, bot_func_mapper["errors"]["error"])
-
-            try:
-                result = RussianCurrencyManager.dollar_exchange_rate(value)
-                bot.send_message(message.chat.id, f"{value if value else 1} USD = {result} RUB")
-            except Exception:
-                bot.send_message(message.chat.id, bot_func_mapper["errors"]["error"])
-
-        elif message.text[0] == "3":
-            data = message.text.split()
-
-            value = None
-
-            if len(data) > 1:
-                try:
-                    value = float(data[1])
-                except Exception:
-                    bot.send_message(message.chat.id, bot_func_mapper["errors"]["error"])
-
-            try:
-                result = RussianCurrencyManager.euro_exchange_rate(value)
-                bot.send_message(message.chat.id, f"{value if value else 1} EUR = {result} RUB")
-            except Exception:
-                bot.send_message(message.chat.id, bot_func_mapper["errors"]["error"])
-
-        else:
-            bot.send_message(message.chat.id, bot_func_mapper["errors"]["unknown_command"])
-
+@bot.message_handler(commands=['ex'])
+def exchange_command(message):
+    try:
+        data = parse_for_exchange(message.text.split())
+    except Exception:
+        bot.send_message(message.chat.id, bot_func_mapper["errors"]["error"])
     else:
-        bot.send_message(message.chat.id, bot_func_mapper["errors"]["unknown_command"])
+        try:
+            output = RussianCurrencyManager.exchange_currency(**data)
+            bot.send_message(message.chat.id, f"{data['value']} {data['from_this']}"
+                                              f" = {output} {data['to_this']}")
+        except CurrencyDoesNotExist:
+            bot.send_message(message.chat.id, bot_func_mapper["errors"]["unknown_currency"])
+
+
+@bot.message_handler(commands=['usd'])
+def usd_rate(message):
+    data = message.text.split()
+
+    try:
+        value = float(data[1])
+        result = RussianCurrencyManager.dollar_exchange_rate(value)
+        bot.send_message(message.chat.id, f"{value} USD = {result} RUB")
+    except Exception:
+        bot.send_message(message.chat.id, bot_func_mapper["errors"]["error"])
+
+
+@bot.message_handler(commands=['eur'])
+def euro_rate(message):
+    data = message.text.split()
+
+    try:
+        value = float(data[1])
+        result = RussianCurrencyManager.euro_exchange_rate(value)
+        bot.send_message(message.chat.id, f"{value} EUR = {result} RUB")
+    except Exception:
+        bot.send_message(message.chat.id, bot_func_mapper["errors"]["error"])
 
 
 if __name__ == '__main__':
